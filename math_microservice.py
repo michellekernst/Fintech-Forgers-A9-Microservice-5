@@ -1,29 +1,43 @@
-    import time
+import time
+import os
 
-    # names of the request and response files
-    request_file = "math_request.txt"
-    response_file = "math_response.txt"
+# names of the request and response files
+request_file = "math_request.txt"
+response_file = "math_response.txt"
 
-    # create the files if they do not exist
-    open(request_file, "a").close()
-    open(response_file, "a").close()
+# stores the last time the request file was processed
+last_modified = 0
 
-    # keep checking the request file
-    while True:
-        try:
-            # read the request
-            with open(request_file) as f:
-                request = f.read().strip()
+# create the files if they do not exist
+open(request_file, "a").close()
+open(response_file, "a").close()
 
-            # only process the file if it has something in it
-            if request:
-                # split the request into the operation and numbers
+# keep checking the request file
+while True:
+    try:
+        # check if request file has data
+        if request_file and open(request_file).read().strip():
+
+            # check when the request file was last changed
+            current_modified = os.path.getmtime(request_file)
+
+            # only process if the file has changed
+            if current_modified != last_modified:
+
+                # remember this file change
+                last_modified = current_modified
+
+                # read the request
+                with open(request_file) as f:
+                    request = f.read().strip()
+
+                # split the request
                 parts = request.split()
 
                 # first item is the operation
                 operation = parts[0]
 
-                # everything after the operation is a number, add to array
+                # everything after the operation is a number
                 numbers = [float(x) for x in parts[1:]]
 
                 # perform the requested operation
@@ -55,13 +69,9 @@
                 with open(response_file, "w") as f:
                     f.write(str(result))
 
-                # clear the request file after processing it
-                open(request_file, "w").close()
+    except Exception as e:
+        with open(response_file, "w") as f:
+            f.write(f"error: {e}")
 
-        # write any errors to the response file
-        except Exception as e:
-            with open(response_file, "w") as f:
-                f.write(f"error: {e}")
-
-        # wait a little before checking again
-        time.sleep(0.1)
+    # wait before checking again
+    time.sleep(0.1)
